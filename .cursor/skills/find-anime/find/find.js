@@ -1,6 +1,61 @@
 import axios from 'axios';
 
 const JIKAN_BASE = 'https://api.jikan.moe/v4';
+const BANGUMI_BASE = 'https://api.bgm.tv';
+
+async function searchBangumi(rawTitle) {
+  const encoded = encodeURIComponent(rawTitle);
+  const url = `${BANGUMI_BASE}/search/subject/${encoded}`;
+  const { data } = await axios.get(url, { params: { type: 2 } });
+  return data?.list ?? data?.results ?? [];
+}
+
+function pickBestMatch(rawTitle, results) {
+  if (!Array.isArray(results) || results.length === 0) return null;
+
+  const candidates = results.filter((item) => item.name_cn && String(item.name_cn).trim().length > 0);
+  const list = candidates.length > 0 ? candidates : results;
+
+  const normalize = (s) => String(s || '').replace(/\s+/g, '').toLowerCase();
+  const target = normalize(rawTitle);
+
+  const exact = list.find(
+    (item) => normalize(item.name) === target || normalize(item.name_cn) === target,
+  );
+  if (exact) return exact;
+
+  const sorted = [...list].sort((a, b) => {
+    const sa = typeof a.score === 'number' ? a.score : -1;
+    const sb = typeof b.score === 'number' ? b.score : -1;
+    if (sa !== sb) return sb - sa;
+    const ra = typeof a.rank === 'number' ? a.rank : Number.MAX_SAFE_INTEGER;
+    const rb = typeof b.rank === 'number' ? b.rank : Number.MAX_SAFE_INTEGER;
+    return ra - rb;
+  });
+
+  return sorted[0] ?? null;
+}
+
+async function enrichWithCN(animeList) {
+  const results = [];
+  for (let i = 0; i < animeList.length; i++) {
+    const anime = animeList[i];
+    const rawTitle = anime.title_japanese || anime.title;
+    process.stdout.write(`\r[${i + 1}/${animeList.length}] 查詢中文名：${rawTitle.slice(0, 30)}`);
+    try {
+      const hits = await searchBangumi(rawTitle);
+      const best = pickBestMatch(rawTitle, hits);
+      results.push({ ...anime, title_cn: best?.name_cn?.trim() || null });
+    } catch {
+      results.push({ ...anime, title_cn: null });
+    }
+    if (i < animeList.length - 1) {
+      await new Promise((r) => setTimeout(r, 300));
+    }
+  }
+  process.stdout.write('\r' + ' '.repeat(60) + '\r');
+  return results;
+}
 
 async function getWinterAnime(year = 2025, season = 'winter') {
   const results = [];
@@ -57,11 +112,36 @@ function printAnimeList(animeList) {
   console.log(divider);
 }
 
+function printAnimeListWithCN(animeList) {
+  console.log(`共找到 ${animeList.length} 部動畫（含中文名稱）\n`);
+
+  const header = `${'名次'.padEnd(4)} ${pad('日文原名', 30)} ${pad('中文名稱', 24)} ${pad('類型', 8)} ${'評分'.padEnd(8)} 集數`;
+  const divider = '─'.repeat(90);
+
+  console.log(header);
+  console.log(divider);
+
+  animeList.forEach((anime, index) => {
+    const rank   = String(index + 1).padStart(4);
+    const title  = pad(anime.title_japanese || anime.title, 30);
+    const cn     = pad(anime.title_cn || '—', 24);
+    const type   = pad(anime.type ?? '未知', 8);
+    const score  = pad(anime.score ? `⭐ ${anime.score}` : '尚無評分', 10);
+    const eps    = anime.episodes ? `${anime.episodes} 集` : '未定';
+
+    console.log(`${rank} ${title} ${cn} ${type} ${score} ${eps}`);
+  });
+
+  console.log(divider);
+}
+
 async function main() {
   const VALID_SEASONS = ['winter', 'spring', 'summer', 'fall'];
-  const argYear    = process.argv[2];
-  const argSeason  = process.argv[3];
-  const argMinScore = process.argv[4];
+  const args = process.argv.slice(2);
+
+  const argYear     = args[0];
+  const argSeason   = args[1];
+  const argMinScore = args[2];
 
   const year = argYear && /^\d{4}$/.test(argYear) ? Number(argYear) : 2025;
   const season =
@@ -76,7 +156,6 @@ async function main() {
   try {
     let animeList = await getWinterAnime(year, season);
 
-    // Sort by score descending, unscored at the end
     animeList.sort((a, b) => {
       if (a.score == null && b.score == null) return 0;
       if (a.score == null) return 1;
@@ -87,7 +166,9 @@ async function main() {
     animeList = animeList.filter((anime) => anime.score != null && anime.score >= minScore);
 
     console.log(`（篩選：評分 >= ${minScore}）`);
-    printAnimeList(animeList);
+    console.log('🌐 正在查詢中文名稱，請稍候...\n');
+    const enriched = await enrichWithCN(animeList);
+    printAnimeListWithCN(enriched);
   } catch (err) {
     console.error('❌ 發生錯誤:', err.response?.data ?? err.message);
     process.exit(1);

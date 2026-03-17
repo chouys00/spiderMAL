@@ -12,6 +12,7 @@ node .cursor/skills/find-anime/find/find.js [年份] [季節] [最低評分]
 
 - **季節**可填：`winter`（冬）、`spring`（春）、`summer`（夏）、`fall`（秋）
 - 省略參數時預設為 **2025 winter，評分 >= 7.70**
+- 執行後會自動查詢每部動畫的 Bangumi 中文名稱，輸出含中文名的完整清單
 
 ## 使用流程
 
