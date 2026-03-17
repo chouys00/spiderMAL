@@ -113,23 +113,22 @@ function printAnimeList(animeList) {
 }
 
 function printAnimeListWithCN(animeList) {
-  console.log(`共找到 ${animeList.length} 部動畫（含中文名稱）\n`);
+  console.log(`共找到 ${animeList.length} 部動畫\n`);
 
-  const header = `${'名次'.padEnd(4)} ${pad('日文原名', 30)} ${pad('中文名稱', 24)} ${pad('類型', 8)} ${'評分'.padEnd(8)} 集數`;
-  const divider = '─'.repeat(90);
+  const header = `${'名次'.padEnd(4)} ${pad('標題', 36)} ${pad('類型', 8)} ${'評分'.padEnd(6)} 集數`;
+  const divider = '─'.repeat(72);
 
   console.log(header);
   console.log(divider);
 
   animeList.forEach((anime, index) => {
-    const rank   = String(index + 1).padStart(4);
-    const title  = pad(anime.title_japanese || anime.title, 30);
-    const cn     = pad(anime.title_cn || '—', 24);
-    const type   = pad(anime.type ?? '未知', 8);
-    const score  = pad(anime.score ? `⭐ ${anime.score}` : '尚無評分', 10);
-    const eps    = anime.episodes ? `${anime.episodes} 集` : '未定';
+    const rank  = String(index + 1).padStart(4);
+    const title = pad(anime.title_cn || anime.title_japanese || anime.title, 36);
+    const type  = pad(anime.type ?? '未知', 8);
+    const score = pad(anime.score ? `⭐ ${anime.score}` : '尚無評分', 8);
+    const eps   = anime.episodes ? `${anime.episodes} 集` : '未定';
 
-    console.log(`${rank} ${title} ${cn} ${type} ${score} ${eps}`);
+    console.log(`${rank} ${title} ${type} ${score} ${eps}`);
   });
 
   console.log(divider);
