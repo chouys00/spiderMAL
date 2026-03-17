@@ -1,4 +1,7 @@
 import axios from 'axios';
+import * as OpenCC from 'opencc-js';
+
+const toTraditional = OpenCC.Converter({ from: 'cn', to: 'tw' });
 
 const BANGUMI_BASE = 'https://api.bgm.tv';
 
@@ -60,7 +63,7 @@ function printResult(rawTitle, subject) {
     return;
   }
 
-  const cn = subject.name_cn || subject.name || rawTitle;
+  const cn = toTraditional(subject.name_cn || subject.name || rawTitle);
   console.log(`中文名稱：${cn}`);
   console.log('來源：Bangumi');
 
