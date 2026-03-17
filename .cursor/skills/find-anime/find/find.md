@@ -7,7 +7,7 @@
 ## 執行指令
 
 ```bash
-node index.js [年份] [季節] [最低評分]
+node .cursor/skills/find-anime/find/find.js [年份] [季節] [最低評分]
 ```
 
 - **季節**可填：`winter`（冬）、`spring`（春）、`summer`（夏）、`fall`（秋）
@@ -34,8 +34,8 @@ node index.js [年份] [季節] [最低評分]
 
 | 使用者輸入 | 執行指令 |
 |-----------|---------|
-| 找動畫 | `node index.js` |
-| 找 2024 春季動畫 | `node index.js 2024 spring` |
-| 搜尋 2025 秋天的動畫 | `node index.js 2025 fall` |
-| 幫我查 2023 夏季動畫 | `node index.js 2023 summer` |
-| 找 2022 冬季評分 8 以上 | `node index.js 2022 winter 8` |
+| 找動畫 | `node .cursor/skills/find-anime/find/find.js` |
+| 找 2024 春季動畫 | `node .cursor/skills/find-anime/find/find.js 2024 spring` |
+| 搜尋 2025 秋天的動畫 | `node .cursor/skills/find-anime/find/find.js 2025 fall` |
+| 幫我查 2023 夏季動畫 | `node .cursor/skills/find-anime/find/find.js 2023 summer` |
+| 找 2022 冬季評分 8 以上 | `node .cursor/skills/find-anime/find/find.js 2022 winter 8` |
