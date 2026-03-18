@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import axios from 'axios';
 import * as OpenCC from 'opencc-js';
 
@@ -142,6 +144,17 @@ function printAnimeListWithCN(animeList) {
   console.log(divider);
 }
 
+function saveCache({ year, season, minScore, items }) {
+  try {
+    const cachePath = path.resolve(process.cwd(), 'anime-cache.json');
+    const payload = { year, season, minScore, items };
+    fs.writeFileSync(cachePath, JSON.stringify(payload, null, 2), 'utf8');
+    console.log(`\n暫存檔已寫入：${cachePath}`);
+  } catch (err) {
+    console.warn('\n⚠️  暫存檔寫入失敗:', err.message);
+  }
+}
+
 async function main() {
   const VALID_SEASONS = ['winter', 'spring', 'summer', 'fall'];
   const args = process.argv.slice(2);
@@ -176,6 +189,14 @@ async function main() {
     console.log('🌐 正在查詢中文名稱，請稍候...\n');
     const enriched = await enrichWithCN(animeList);
     printAnimeListWithCN(enriched);
+
+    const items = enriched.map((anime) => ({
+      name_cn: anime.title_cn || anime.title_japanese || anime.title || null,
+      score: anime.score ?? null,
+      episodes: anime.episodes ?? null,
+      type: anime.type ?? null,
+    }));
+    saveCache({ year, season, minScore, items });
   } catch (err) {
     console.error('❌ 發生錯誤:', err.response?.data ?? err.message);
     process.exit(1);

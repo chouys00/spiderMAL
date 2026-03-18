@@ -4,3 +4,6 @@ coverage/
 .DS_Store
 Thumbs.db
 
+# find-anime 暫存檔
+anime-cache.json
+
