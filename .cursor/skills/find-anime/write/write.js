@@ -49,7 +49,7 @@ function buildBatchText({ year, season, minScore, items }) {
   const scoreStr = Number.isFinite(minScore) ? minScore.toFixed(2) : String(minScore);
   const headerLine = `${year}  ${seasonZh}  >${scoreStr}    (更新時間: ${formatTimestamp()})`;
 
-  const lines = [headerLine];
+  const lines = [headerLine, ''];
 
   for (const item of items) {
     const name =
@@ -62,7 +62,7 @@ function buildBatchText({ year, season, minScore, items }) {
         : '未定';
     const type = (item && item.type) || '未知';
 
-    lines.push(`${name}  ${score}  ${episodes}  ${type}`);
+    lines.push(`- ${name}  **${score}**  (${episodes} · ${type})`);
   }
 
   lines.push('------------------------------');
