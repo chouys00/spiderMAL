@@ -48,28 +48,6 @@ async function enrichWithCN(animeList) {
     try {
       const hits = await searchBangumi(rawTitle);
       const best = pickBestMatch(rawTitle, hits);
-      // #region agent log
-      fetch('http://127.0.0.1:7305/ingest/f60ad2c1-a0fb-4a76-8268-046155f48dbe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Debug-Session-Id': '451072',
-        },
-        body: JSON.stringify({
-          sessionId: '451072',
-          runId: 'pre-fix',
-          hypothesisId: 'A',
-          location: 'find.js:enrichWithCN',
-          message: 'Bangumi match result',
-          data: {
-            rawTitle,
-            name_cn: best?.name_cn ?? null,
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion
-
       const rawNameCn = best?.name_cn?.trim() || null;
       const titleCnTraditional = rawNameCn ? toTraditional(rawNameCn) : null;
 
@@ -152,33 +130,6 @@ function printAnimeListWithCN(animeList) {
   animeList.forEach((anime, index) => {
     const rank  = String(index + 1).padStart(4);
     const chosenTitle = anime.title_cn || anime.title_japanese || anime.title;
-
-    // #region agent log
-    if (index < 5) {
-      fetch('http://127.0.0.1:7305/ingest/f60ad2c1-a0fb-4a76-8268-046155f48dbe', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Debug-Session-Id': '451072',
-        },
-        body: JSON.stringify({
-          sessionId: '451072',
-          runId: 'pre-fix',
-          hypothesisId: 'B',
-          location: 'find.js:printAnimeListWithCN',
-          message: 'Chosen title for list row',
-          data: {
-            index,
-            title_cn: anime.title_cn ?? null,
-            title_japanese: anime.title_japanese ?? null,
-            title: anime.title ?? null,
-            chosenTitle,
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-    }
-    // #endregion
 
     const title = pad(chosenTitle, 36);
     const type  = pad(anime.type ?? '未知', 8);
