@@ -83,7 +83,7 @@ async function main() {
     const cache = loadCache();
     const batchText = buildBatchText(cache);
 
-    const targetPath = 'D:/MCPfilesystem/動畫.md';
+    const targetPath = 'D:/GoogleDrive_Sync/動畫.md';
     saveStacked(targetPath, batchText);
 
     const seasonZh = seasonToZh(cache.season);

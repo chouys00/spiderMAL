@@ -1,4 +1,4 @@
-## 寫入動畫清單到 MCP filesystem
+## 寫入動畫清單到檔案
 
 ### 專案位置
 
@@ -21,7 +21,8 @@
 node .cursor/skills/find-anime/write/write.js
 ```
 
-不接受額外的年份、季節、評分參數，所有條件均來自 `anime-cache.json`。
+> 腳本與 Cursor 架構共用，位於 `.cursor/skills/find-anime/write/write.js`。
+> 不接受額外的年份、季節、評分參數，所有條件均來自 `anime-cache.json`。
 
 ### 觸發關鍵字
 
