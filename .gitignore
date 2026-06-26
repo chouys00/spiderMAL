@@ -7,3 +7,5 @@ Thumbs.db
 # find-anime 暫存檔
 anime-cache.json
 
+# IDE
+.idea/

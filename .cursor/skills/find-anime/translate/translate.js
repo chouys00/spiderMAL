@@ -1,59 +1,5 @@
-import axios from 'axios';
-import * as OpenCC from 'opencc-js';
-
-const toTraditional = OpenCC.Converter({ from: 'cn', to: 'tw' });
-
-const BANGUMI_BASE = 'https://api.bgm.tv';
-
-async function searchBangumi(rawTitle) {
-  // 這裡使用 Bangumi 舊版 JSON API 作為範例：
-  // GET /search/subject/{keywords}?type=2
-  // 部分部署可能需要根據實際文件微調 endpoint
-  const encoded = encodeURIComponent(rawTitle);
-  const url = `${BANGUMI_BASE}/search/subject/${encoded}`;
-
-  const { data } = await axios.get(url, {
-    params: {
-      type: 2, // 2 = 動畫
-    },
-  });
-
-  return data?.list ?? data?.results ?? [];
-}
-
-function pickBestMatch(rawTitle, results) {
-  if (!Array.isArray(results) || results.length === 0) return null;
-
-  // 優先：有 name_cn 的條目
-  const candidates = results.filter((item) => item.name_cn && String(item.name_cn).trim().length > 0);
-  const list = candidates.length > 0 ? candidates : results;
-
-  // 簡單相似度規則：
-  // 1. 完全相同（忽略空白）
-  // 2. 否則依 score / rank 排序
-  const normalize = (s) => String(s || '').replace(/\s+/g, '').toLowerCase();
-  const target = normalize(rawTitle);
-
-  const exact = list.find(
-    (item) => normalize(item.name) === target || normalize(item.name_cn) === target,
-  );
-  if (exact) return exact;
-
-  // Fallback：根據 score / rank 取最前面一筆
-  const sorted = [...list].sort((a, b) => {
-    // 有 score 的優先
-    const sa = typeof a.score === 'number' ? a.score : -1;
-    const sb = typeof b.score === 'number' ? b.score : -1;
-    if (sa !== sb) return sb - sa;
-
-    // 其次比 rank（數字越小越前面）
-    const ra = typeof a.rank === 'number' ? a.rank : Number.MAX_SAFE_INTEGER;
-    const rb = typeof b.rank === 'number' ? b.rank : Number.MAX_SAFE_INTEGER;
-    return ra - rb;
-  });
-
-  return sorted[0] ?? null;
-}
+import { fileURLToPath } from 'url';
+import { searchBangumi, pickBestMatch, toTraditional } from '../lib/bangumi.js';
 
 function printResult(rawTitle, subject) {
   console.log(`原始名稱：${rawTitle}`);
@@ -95,5 +41,6 @@ async function main() {
   }
 }
 
-main();
-
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  main();
+}
